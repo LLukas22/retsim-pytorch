@@ -1,0 +1,1 @@
+Original RetSim weights from: https://github.com/google/unisim/tree/main/unisim/embedder/models/text/retsim
