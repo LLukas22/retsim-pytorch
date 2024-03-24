@@ -51,6 +51,9 @@ Documentation = "https://github.com/LLukas22/retsim-pytorch#readme"
 Issues = "https://github.com/LLukas22/retsim-pytorch/issues"
 Source = "https://github.com/LLukas22/retsim-pytorch"
 
+[tool.hatch.build.targets.sdist]
+exclude = ["weights/*"]
+
 [tool.hatch.version]
 path = "src/retsim_pytorch/__about__.py"
 
@@ -59,6 +62,7 @@ dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
 ]
+
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
