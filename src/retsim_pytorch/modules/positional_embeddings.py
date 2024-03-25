@@ -90,7 +90,7 @@ def rope(x: torch.Tensor, axis: Union[List[int], int]) -> torch.Tensor:
 
     half_size = x.size(-1) // 2
     freq_seq = torch.arange(half_size, dtype=torch.float32) / float(half_size)
-    inv_freq = 10000**-freq_seq
+    inv_freq = (10000**-freq_seq).to(x.device)
     sinusoid = torch.einsum("...,d->...d", position, inv_freq)
     sin = torch.sin(sinusoid).to(x.dtype)
     cos = torch.cos(sinusoid).to(x.dtype)
