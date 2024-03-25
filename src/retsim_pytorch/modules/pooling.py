@@ -3,35 +3,28 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-
-class GeneralizedMeanPooling(nn.Module):
+class GeneralizedMeanPooling1D(nn.Module):
     def __init__(
-        self, p: float = 3.0, data_format: str = "channels_last", keepdims: bool = False
+        self, p: float = 3.0, step_axis: int = 1, keepdims: bool = False
     ):
-        super(GeneralizedMeanPooling, self).__init__()
+        super(GeneralizedMeanPooling1D, self).__init__()
         self.p = p
-        self.data_format = data_format
+        self.step_axis = step_axis
         self.keepdims = keepdims
-        self.step_axis = 1 if data_format == "channels_last" else 2
 
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        mins = torch.min(x, dim=self.step_axis, keepdim=True)[0]
+        x_offset = x - mins + 1
+        
         if abs(self.p) < 0.00001:
-            self.compute_mean = self._geometric_mean
+            x_offset = self._geometric_mean(x_offset)
         elif self.p == math.inf:
-            self.compute_mean = self._pos_inf
+            x_offset = self._pos_inf(x_offset)
         elif self.p == -math.inf:
-            self.compute_mean = self._neg_inf
+            x_offset = self._neg_inf(x_offset)
         else:
-            self.compute_mean = self._generalized_mean
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.data_format == "channels_last":
-            mins = torch.min(x, dim=self.step_axis, keepdim=True)[0]
-            x_offset = x - mins + 1
-        else:
-            mins = torch.min(x, dim=self.step_axis, keepdim=True)[0]
-            x_offset = x - mins + 1
-
-        x_offset = self.compute_mean(x_offset)
+            x_offset = self._generalized_mean(x_offset)
+            
         x = x_offset + mins - 1
 
         if not self.keepdims:
@@ -54,12 +47,4 @@ class GeneralizedMeanPooling(nn.Module):
     def _neg_inf(self, x: torch.Tensor):
         # Implement as negative of the positive inf of -x
         return -self._pos_inf(-x)
-
-
-class GeneralizedMeanPooling1D(GeneralizedMeanPooling):
-    def __init__(
-        self, p: float = 3.0, data_format: str = "channels_last", keepdims: bool = False
-    ):
-        super(GeneralizedMeanPooling1D, self).__init__(
-            p=p, data_format=data_format, keepdims=keepdims
-        )
+        

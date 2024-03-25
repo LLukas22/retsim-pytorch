@@ -19,6 +19,14 @@ def test_is_constructable():
     pt_module = GAU(dim=256)
     assert pt_module is not None
 
+def test_is_compilable():
+    pt_module = GAU(dim=256, shared_dim=128, max_len=512)
+    inputs = torch.rand(1, 512, 256)
+
+    pt_module = torch.jit.script(pt_module)
+    pt_output = pt_module(inputs)
+
+    assert pt_output is not None
 
 def test_output_sizes_match():
     tf_module = TFGAU(dim=256, shared_dim=128, max_len=512, expansion_factor=2)
@@ -90,3 +98,24 @@ def test_can_load_tf_weights():
             pt_module(torch.tensor(inputs, dtype=torch.float32)),
             torch.tensor(tf_module(tf.constant(inputs, dtype=tf.float32)).numpy()),
         )
+
+
+def test_is_onnx_exportable():
+    pt_module = GAU(dim=256, shared_dim=128, max_len=512, expansion_factor=1)
+    inputs = torch.rand(1, 512, 256)
+
+    pt_module = torch.jit.script(pt_module)
+    pt_module.eval()
+    pt_output = pt_module(inputs)
+
+    torch.onnx.export(
+        pt_module,
+        inputs,
+        "gau.onnx",
+        input_names=["input"],
+        output_names=["output"],
+        dynamic_axes={"input": {0: "batch"}},
+    )
+
+    import onnx
+    onnx.checker.check_model(onnx.load("gau.onnx"),full_check=True)

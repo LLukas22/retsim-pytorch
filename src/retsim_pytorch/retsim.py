@@ -89,7 +89,7 @@ class RETSim(nn.Module):
             in_features=self.config.hidden_size, out_features=self.config.hidden_size
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor,training:bool=False) -> tuple[torch.Tensor, torch.Tensor]:
         x = self.positional_embedding(x)
         x = self.encoder_start(x)
         x = self.activation(x)

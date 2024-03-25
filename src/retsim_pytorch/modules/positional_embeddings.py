@@ -40,16 +40,17 @@ class ScaledSinusoidalPositionalEmbedding(nn.Module):
 
     def forward(self, inputs: Tensor) -> Tensor:
         length = inputs.shape[1]
-        position = torch.arange(length, dtype=torch.float32).to(inputs.device)
+        position = torch.arange(length, dtype=inputs.dtype).to(inputs.device)
         num_timescales = self.hidden_size // 2
         log_timescale_increment = torch.log(
             torch.tensor(
                 float(self.max_timescale) / float(self.min_timescale),
                 device=inputs.device,
+                dtype=inputs.dtype
             )
-        ) / (torch.tensor(num_timescales, dtype=torch.float32) - 1)
+        ) / (torch.tensor(num_timescales, dtype=inputs.dtype) - 1)
         inv_timescales = self.min_timescale * torch.exp(
-            torch.arange(num_timescales, dtype=torch.float32, device=inputs.device)
+            torch.arange(num_timescales, dtype=inputs.dtype, device=inputs.device)
             * -log_timescale_increment
         )
         scaled_time = torch.unsqueeze(position, 1) * torch.unsqueeze(inv_timescales, 0)
