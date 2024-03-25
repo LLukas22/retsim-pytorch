@@ -34,8 +34,8 @@ def test_output_and_weights_match():
     assert len(weights) == len(pt_weights)
 
     new_state_dict = {
-        "weight": torch.tensor(weights[0].numpy().T),
-        "bias": torch.tensor(weights[1].numpy()),
+        "linear.weight": torch.tensor(weights[0].numpy().T),
+        "linear.bias": torch.tensor(weights[1].numpy()),
     }
 
     pt_module.load_state_dict(new_state_dict)
@@ -47,3 +47,13 @@ def test_output_and_weights_match():
         )
         pt_result = pt_module(torch.tensor(inputs, dtype=torch.float32))
         assert_close(tf_result, pt_result)
+        
+        
+def test_is_compilable():
+    pt_module = MetricEmbedding(in_features=256, out_features=256)
+    inputs = torch.rand(1, 256)
+
+    pt_module = torch.jit.script(pt_module)
+    pt_output = pt_module(inputs)
+
+    assert pt_output is not None

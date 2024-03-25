@@ -22,8 +22,6 @@ def test_convert_retsim():
 
 
 pytest.mark.skip(reason="Only for manual testing")
-
-
 def test_export_as_safetensor():
     from safetensors.torch import save_file
 

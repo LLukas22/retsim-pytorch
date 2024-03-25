@@ -44,3 +44,13 @@ def test_results_match(p: float):
     pt_result = pt_module(torch.tensor(inputs, dtype=torch.float32))
 
     assert_close(tf_result, pt_result)
+
+
+def test_is_compilable():
+    pt_module = GeneralizedMeanPooling1D(p=3.0)
+    inputs = torch.rand(1, 256, 256)
+
+    pt_module = torch.jit.script(pt_module)
+    pt_output = pt_module(inputs)
+
+    assert pt_output is not None

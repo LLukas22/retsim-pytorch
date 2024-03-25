@@ -134,7 +134,7 @@ class GAU(nn.Module):
 
         # Compute key-query scores
         qk = torch.einsum(
-            "bnd,bmd->bnm", q.squeeze(2), k.squeeze(2)
+            "bnd,bmd->bnm", q, k
         )  # e.g. (1, 512, 512)
         qk = qk / self.max_len
 

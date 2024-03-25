@@ -44,7 +44,7 @@ def convert_retsim(directory: Path) -> dict[str, torch.Tensor]:
     encoder_start = process_linear(*weights[1:3], prefix="encoder_start")
     gau_0_weights = process_gau(weights[3:12], prefix="gau_layers.0")
     gau_1_weights = process_gau(weights[12:21], prefix="gau_layers.1")
-    metric_embedding = process_linear(*weights[21:], prefix="metric_embedding")
+    metric_embedding = process_linear(*weights[21:], prefix="metric_embedding.linear")
     weight_map = {
         **positional_scale,
         **encoder_start,

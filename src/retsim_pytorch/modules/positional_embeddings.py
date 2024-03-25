@@ -40,16 +40,17 @@ class ScaledSinusoidalPositionalEmbedding(nn.Module):
 
     def forward(self, inputs: Tensor) -> Tensor:
         length = inputs.shape[1]
-        position = torch.arange(length, dtype=torch.float32).to(inputs.device)
+        position = torch.arange(length, dtype=inputs.dtype).to(inputs.device)
         num_timescales = self.hidden_size // 2
         log_timescale_increment = torch.log(
             torch.tensor(
                 float(self.max_timescale) / float(self.min_timescale),
                 device=inputs.device,
+                dtype=inputs.dtype
             )
-        ) / (torch.tensor(num_timescales, dtype=torch.float32) - 1)
+        ) / (torch.tensor(num_timescales, dtype=inputs.dtype) - 1)
         inv_timescales = self.min_timescale * torch.exp(
-            torch.arange(num_timescales, dtype=torch.float32, device=inputs.device)
+            torch.arange(num_timescales, dtype=inputs.dtype, device=inputs.device)
             * -log_timescale_increment
         )
         scaled_time = torch.unsqueeze(position, 1) * torch.unsqueeze(inv_timescales, 0)
@@ -63,7 +64,7 @@ class ScaledSinusoidalPositionalEmbedding(nn.Module):
         return inputs + position_embeddings
 
 
-def rope(x: torch.Tensor, axis: Union[List[int], int]) -> torch.Tensor:
+def rope(x: torch.Tensor, axis: int) -> torch.Tensor:
     """RoPE positional encoding for PyTorch.
 
     Args:
@@ -73,20 +74,16 @@ def rope(x: torch.Tensor, axis: Union[List[int], int]) -> torch.Tensor:
     Returns:
         The input tensor with RoPE encodings.
     """
-    # Convert axis to a list if it's not already
-    if isinstance(axis, int):
-        axis = [axis]
 
     # Calculate the total length and create a position tensor
-    spatial_shape = [x.size(i) for i in axis]
-    total_len = torch.prod(torch.tensor(spatial_shape))
+    total_len = torch.tensor(x.size(axis))
     position: torch.Tensor = (
-        torch.arange(total_len, dtype=torch.float32).view(spatial_shape).to(x.device)
+        torch.arange(total_len, dtype=torch.float32).to(x.device)
     )
 
     # Expand the position tensor along the necessary axes
-    for i in range(axis[-1] + 1, x.dim() - 1):
-        position = position.unsqueeze(-1)
+    # for i in range(axis[-1] + 1, x.dim() - 1):
+    #     position = position.unsqueeze(-1)
 
     half_size = x.size(-1) // 2
     freq_seq = torch.arange(half_size, dtype=torch.float32) / float(half_size)
